@@ -1,6 +1,6 @@
 # Claude 작업 관리 동기화·일일 보고 지시서
 
-- 문서 버전: v1.0 (2026-10-30)
+- 문서 버전: v1.1 (2026-10-30)
 - 대상 예약 작업: 「Claude 작업 관리 동기화·일일 보고 (Notion)」 — 평일(월~금) 06:00 KST
 - 담당: 한이현(lhhan@justem.co.kr, 시스템설계팀)
 - 이 파일이 정본임. 예약 작업 프롬프트는 이 파일을 읽어 실행하라는 지시만 가짐 → 규칙 변경은 이 파일만 수정·push 하면 다음 실행부터 반영됨
@@ -19,7 +19,17 @@
 
 워크스페이스는 무료 플랜으로 운영함. 유료 기능을 쓰지 않음.
 
-- `notion-query-data-sources`는 mode `"rows"`(필터·정렬 포함) 또는 mode `"view"`만 사용. **SQL 모드 사용 금지**
+- DB 행 조회는 `notion-query-data-sources`의 **mode `"view"`만 사용** (무료 플랜에서 view 모드는 사용 한도가 없음). **SQL·rows 모드 사용 금지** — rows/SQL은 무료 플랜 한도가 있어 2026-10-30 시험 실행에서 소진되어 실패함
+  - 아래 「조회용 뷰」 URL을 `view_url`로 넘기고, `has_more`가 true면 `next_cursor`를 `start_cursor`로 넘겨 끝까지 읽음 (page_size 100)
+  - 보류·취소 행 포함 전체가 필요하므로 필터 없는 「전체」 뷰를 사용함. 조건 판정은 읽은 뒤 직접 함
+  - 혹시 view 모드도 한도 오류가 나면 쓰기 없이 종료하고 「수집 실패: Notion 조회 한도」로 응답함
+
+| 조회용 뷰 | view_url |
+|---|---|
+| 할 일 DB 「전체」 | https://app.notion.com/p/0eb1947ce3424d3b8195a32bbd745962?v=409ab8d9b3af81528110000c1d9fa692 |
+| 보고 DB 「일일 보고」 | https://app.notion.com/p/234ddca458ef4ee0a9fd3e7502bfdebe?v=29f8a5c1caba478ab76de21a99f4cfc8 |
+| Han 업무 DB 「전체」 | https://app.notion.com/p/f1a5e4d596024106a0545877c8268510?v=409ab8d9b3af815e9aaf000ce930e0bc |
+
 - `notion-search`는 query만 사용. filters(수정자·수정일·title_only 등)와 sort 옵션 사용 금지
   - 최근 수정 페이지는 `notion-list-recent-pages` 또는 search 결과를 fetch해 수정 시각으로 판정
 - 차트·대시보드 뷰, 자동화, 동기화 DB, 검증(verification) 등 유료 기능 생성·수정 금지
@@ -73,7 +83,7 @@
 | 2 | 예약 작업 | `list_triggers`로 활성 작업과 last_run 상태 |
 | 3 | GitHub `justemhan-collab/plugins` | 커밋·열린 PR·머지 PR (mcp__github__ 도구 또는 저장소 git log) |
 | 4 | Notion | 기간 내 생성·수정된 본인 작업 페이지. 허브·두 DB 행·「Han 업무 관리」와 그 DB 행·「00. Claude 브리핑 메인」 제외. 페이지 안 "확인 필요"·미체크 체크박스는 할 일 후보 |
-| 5 | DB 전체 행 | 할 일 DB 전체 + 「Han 업무」 DB 전체 (rows 모드). 사용자가 직접 바꾼 값이 최신 정보임 |
+| 5 | DB 전체 행 | 할 일 DB 전체 + 「Han 업무」 DB 전체 (1장 조회용 뷰, view 모드). 사용자가 직접 바꾼 값이 최신 정보임 |
 
 - Jira·Confluence는 조회하지 않으며 수집 실패로도 기록하지 않음
 - 출처가 Jira·Confluence인 기존 행은 다른 근거(세션·GitHub·Notion)가 있을 때만 완료·진행 중 처리함
@@ -173,7 +183,7 @@
 3. 한 줄 결론
 4. 할 일 DB 변경 내역: 추가 n · 완료 처리 n · 진행 중 변경 n · 보류 지정 n · 중복 의심 표시 n · 일정 조정 n
 5. 수집 실패 출처 목록
-6. 읽은 지시서 버전 (예: v1.0)
+6. 읽은 지시서 버전 (예: v1.1)
 
 ---
 
@@ -182,3 +192,4 @@
 | 버전 | 날짜 | 내용 |
 |---|---|---|
 | v1.0 | 2026-10-30 | 예약 작업 프롬프트에서 분리해 파일로 이관. 14일 경과 보류, 알림, 중복 점검, 무료 플랜 제약, Atlassian 제외 반영 |
+| v1.1 | 2026-10-30 | DB 조회를 view 모드 전용으로 변경 (rows 모드 무료 한도 소진으로 시험 실행 실패), 조회용 뷰 URL 추가 |
